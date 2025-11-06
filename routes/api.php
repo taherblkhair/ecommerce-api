@@ -7,13 +7,18 @@ use App\Http\Controllers\Api\CategoryControllerer;
 use App\Http\Controllers\Api\SaleController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\AuthController;
 
 
-Route::get('/test', function () {
-    return response()->json(['message' => 'API works!']);
-});
+Route::post('login', [AuthController::class, 'login']);
+
 
 // Additional API routes can be defined here
+Route::middleware('auth:sanctum')->group(function () {
+
+// logout route
+Route::post('logout', [AuthController::class, 'logout']);
+
 
 // restful routes for products 
 Route::apiResource('products', ProductController::class);
@@ -34,3 +39,6 @@ Route::apiResource('customers', CustomerController::class);
 Route::get('reports/overview', [ReportController::class, 'overview']);
 Route::get('reports/top-products', [ReportController::class, 'topProducts']);
 Route::get('reports/sales-stats', [ReportController::class, 'salesStats']);
+
+
+});
