@@ -56,6 +56,7 @@ class CategoryControllerer extends Controller
      */
     public function update(Request $request, string $id)
     {
+        dd($request->all());
         $category = Category::findOrFail($id);
 
         $validated = $request->validate([
