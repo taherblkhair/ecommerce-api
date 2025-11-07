@@ -15,6 +15,8 @@ return new class extends Migration
         $table->id();
         $table->string('name');
         $table->text('description')->nullable();
+        // Optional image path (stored on the 'public' disk)
+        //$table->string('image')->nullable();
         $table->timestamps();
     });
     }

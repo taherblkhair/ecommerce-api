@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Category;
+use Illuminate\Support\Facades\Storage;
 
 class CategoryControllerer extends Controller
 {
@@ -21,11 +22,16 @@ class CategoryControllerer extends Controller
      */
     public function store(Request $request)
     {
-    
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'image' => 'nullable|image|max:2048',
         ]);
+
+        // handle image upload if present
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('categories', 'public');
+        }
 
         $category = Category::create($validated);
 
@@ -33,7 +39,7 @@ class CategoryControllerer extends Controller
             'message' => 'تم إنشاء الفئة بنجاح',
             'data' => $category->load('products')
         ], 201);
-         
+
     }
 
     /**
@@ -55,7 +61,17 @@ class CategoryControllerer extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
+            'image' => 'nullable|image|max:2048',
         ]);
+
+        // if new image uploaded, delete old and store new
+        if ($request->hasFile('image')) {
+            if ($category->image) {
+                Storage::disk('public')->delete($category->image);
+            }
+
+            $validated['image'] = $request->file('image')->store('categories', 'public');
+        }
 
         $category->update($validated);
 
@@ -71,6 +87,11 @@ class CategoryControllerer extends Controller
     public function destroy(string $id)
     {
         $category = Category::findOrFail($id);
+        // delete stored image if exists
+        if ($category->image) {
+            Storage::disk('public')->delete($category->image);
+        }
+
         $category->delete();
         return response()->json(['message' => 'تم حذف الفئة بنجاح']);
     }
