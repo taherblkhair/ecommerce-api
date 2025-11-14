@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\AuthController;
 
 
 Route::post('login', [AuthController::class, 'login']);
+Route::post('register', [AuthController::class, 'register']);
 
 
 // Additional API routes can be defined here
@@ -19,15 +20,16 @@ Route::middleware('auth:sanctum')->group(function () {
 // logout route
 Route::post('logout', [AuthController::class, 'logout']);
 
+//restful routes for categories
+Route::apiResource('categories', CategoryControllerer::class);
 
-// restful routes for products 
+// restful routes for products
 Route::apiResource('products', ProductController::class);
 
 // restful routes for product colors
 Route::apiResource('product_colors', ProductColorController::class);
 
 // restful routes for categories
-Route::apiResource('categories', CategoryControllerer::class);
 
 // restful routes for sales
 Route::apiResource('sales', SaleController::class);
@@ -35,7 +37,7 @@ Route::apiResource('sales', SaleController::class);
 // restful routes for customers
 Route::apiResource('customers', CustomerController::class);
 
-// route report 
+// route report
 Route::get('reports/overview', [ReportController::class, 'overview']);
 Route::get('reports/top-products', [ReportController::class, 'topProducts']);
 Route::get('reports/sales-stats', [ReportController::class, 'salesStats']);

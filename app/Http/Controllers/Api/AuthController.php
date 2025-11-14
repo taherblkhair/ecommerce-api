@@ -9,6 +9,31 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
+    // register method can be added here if needed
+    // protected $redirectTo = '/home';
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6',
+        ]);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        // إنشاء توكن جديد
+        $token = $user->createToken('api-token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'تم التسجيل بنجاح',
+            'token' => $token,
+            'user' => $user
+        ], 201);
+    }
     /**
      * تسجيل الدخول وإنشاء توكن API
      */
