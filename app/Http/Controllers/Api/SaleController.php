@@ -31,6 +31,33 @@ class SaleController extends Controller
             'items.*.unit_price' => 'required|numeric|min:0',
         ]);
 
+        // first, check stock availability for items that reference a product_color
+        $shortages = [];
+        foreach ($validated['items'] as $index => $item) {
+            if (!empty($item['product_color_id'])) {
+                $color = ProductColor::find($item['product_color_id']);
+                $available = $color ? (int) $color->quantity : 0;
+
+                if ($item['quantity'] > $available) {
+                    $shortages[] = [
+                        'item_index' => $index,
+                        'product_id' => $item['product_id'],
+                        'product_color_id' => $item['product_color_id'],
+                        'requested' => (int) $item['quantity'],
+                        'available' => $available,
+                    ];
+                }
+            }
+        }
+
+        if (!empty($shortages)) {
+            // return 422 Unprocessable Entity with shortages details
+            return response()->json([
+                'message' => 'كمية غير كافية لبعض الأصناف',
+                'shortages' => $shortages
+            ], 422);
+        }
+
         DB::beginTransaction();
 
         try {
@@ -43,18 +70,26 @@ class SaleController extends Controller
 
             $total = 0;
 
-            // إضافة تفاصيل المبيعات
+            // إضافة تفاصيل المبيعات وخصم الكمية من المخزون عند الحاجة
             foreach ($validated['items'] as $item) {
                 $subtotal = $item['unit_price'] * $item['quantity'];
                 $total += $subtotal;
 
-                SaleItem::create([
+                $saleItem = SaleItem::create([
                     'sale_id' => $sale->id,
                     'product_id' => $item['product_id'],
                     'product_color_id' => $item['product_color_id'] ?? null,
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                 ]);
+
+                // decrement stock for color if applicable
+                if (!empty($item['product_color_id'])) {
+                    $color = ProductColor::find($item['product_color_id']);
+                    if ($color) {
+                        $color->decrement('quantity', $item['quantity']);
+                    }
+                }
             }
 
             // تحديث المجموع الكلي للفاتورة
