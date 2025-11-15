@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\SaleController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DashboardController;
 
 
 Route::post('login', [AuthController::class, 'login']);
@@ -41,6 +42,9 @@ Route::apiResource('customers', CustomerController::class);
 Route::get('reports/overview', [ReportController::class, 'overview']);
 Route::get('reports/top-products', [ReportController::class, 'topProducts']);
 Route::get('reports/sales-stats', [ReportController::class, 'salesStats']);
+
+// dashboard overview
+Route::get('dashboard/overview', [DashboardController::class, 'overview']);
 
 
 });
